@@ -68,9 +68,9 @@ class root:
         response += '''<li><a href="%(shortUrl)s">%(name)s</a></li>''' % playlist
       response += '</ul>'
       response += '''<form action="/savefromemail">
-        The address to which you should have VCast Song ID send song identification emails is %s
-        Email address from which to expect VCast Song ID emails: <input type="text" name="fromemail"/>
-        <input type="submit" name="save" value="Save"/>
+        <table border=0>
+        <th><td>Send Song ID emails to</td><td>Discoplay expects emails from</td><td>Save</td></th>
+        <tr><td>%s</td><td><input type="text" name="fromemail"/></td><td><input type="submit" name="save" value="Save"/></td></tr>
       </form>''' % 'foo@bar.com'
       response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
       return response
