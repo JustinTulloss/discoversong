@@ -83,6 +83,7 @@ class root:
       
       response = '''
       <html><head><title>Discoplay</title></head><body>
+      Welcome %s!
       ''' % currentUser['firstName']
       
       response += '''<form action="/savefromemail">
