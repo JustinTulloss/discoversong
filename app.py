@@ -41,21 +41,23 @@ urls = (
   '/callback', 'callback',
   '/logout', 'logout',
   '/savefromemail', 'savefromemail',
+  '/idsong', 'idsong',
 )
 app = web.application(urls, globals())
 
 letters = 'abcdefghijklmnopqrstuvwxyz'
 numbers = '1234567890'
 def make_unique_email(db):
-  name = ''
-  for i in range(15):
-    name += letters[random.randrange(0, len(letters))]
-    name += numbers[random.randrange(0, len(numbers))]
-  exists = db.select('discoplay_user', what='count(*)', where="email_to_address='%s'" % name)[0]
-  if exists['count'] > 0:
-    return make_unique_email(db)
-  else:
-    return name
+  return '61212cf0152d9aff08a7@cloudmailin.net'
+  #name = ''
+  #for i in range(15):
+  #  name += letters[random.randrange(0, len(letters))]
+  #  name += numbers[random.randrange(0, len(numbers))]
+  #exists = db.select('discoplay_user', what='count(*)', where="email_to_address='%s'" % name)[0]
+  #if exists['count'] > 0:
+  #  return make_unique_email(db)
+  #else:
+  #  return name
 
 class root:
   def GET(self):
@@ -159,6 +161,11 @@ class logout:
 class savefromemail:
   def POST(self):
     return 'something something'
-  
+
+class idsong:
+  def POST(self):
+    print 'got email!!!!'
+    return 'smth smth got email!'
+
 if __name__ == "__main__":
     app.run()
