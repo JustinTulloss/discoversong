@@ -59,7 +59,8 @@ class root:
       
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
       
-      db = web.database(dburl='postgres://tguaspklkhnrpn:4KBnjLB1n5wbuvzNB4p7DyQEpF@pg60.sharedpg.heroku.com/vivid_winter_30977')
+      db = web.database(dburl='postgres://tguaspklkhnrpn:4KBnjLB1n5wbuvzNB4p7DyQEpF@pg60.sharedpg.heroku.com/vivid_winter_30977',
+          dbn='pg60.sharedpg.heroku.com', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
       
       response = '''
       <html><head><title>Discoplay</title></head><body>

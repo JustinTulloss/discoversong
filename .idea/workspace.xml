@@ -31,10 +31,19 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="app.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="app.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="61" column="127" selection-start="2366" selection-end="2366" vertical-scroll-proportion="0.55886155">
+            <state line="56" column="96" selection-start="2121" selection-end="2121" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="3" column="0" selection-start="31" selection-end="31" vertical-scroll-proportion="0.0465718">
               <folding />
             </state>
           </provider>
@@ -84,6 +93,7 @@
         <option value="$PROJECT_DIR$/rdio_consumer_credentials.py" />
         <option value="$PROJECT_DIR$/Procfile" />
         <option value="$PROJECT_DIR$/app.py" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -319,7 +329,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="61" column="127" selection-start="2366" selection-end="2366" vertical-scroll-proportion="0.55886155">
+        <state line="56" column="96" selection-start="2121" selection-end="2121" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="0" selection-start="31" selection-end="31" vertical-scroll-proportion="0.0465718">
           <folding />
         </state>
       </provider>
