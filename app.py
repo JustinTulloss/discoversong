@@ -21,6 +21,7 @@
 
 # include the parent directory in the Python path
 import sys,os.path
+import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # import the rdio-simple library
@@ -61,8 +62,9 @@ class root:
       
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
       
-      db = web.database(dburl='postgres://tguaspklkhnrpn:4KBnjLB1n5wbuvzNB4p7DyQEpF@pg60.sharedpg.heroku.com/vivid_winter_30977',
-          dbn='postgres', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
+      dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
+      print dburl
+      db = web.database(dburl=dburl, dbn='postgres')
       
       result = db.select(['email_from_address', 'email_to_address', 'rdio_playlist_id'], where="rdio_user_id=%i" % user_id)
       print result
