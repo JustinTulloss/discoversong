@@ -51,9 +51,11 @@ def make_unique_email(db):
   for i in range(15):
     name += letters[random.randrange(0, len(letters))]
     name += numbers[random.randrange(0, len(numbers))]
-  print 'checking name', name, '...'
   exists = db.select('discoplay_user', what='count(*)', where="email_to_address='%s'" % name)[0]
-  print 'exists?', exists
+  if exists['count'] > 0:
+    return make_unique_email(db)
+  else:
+    return name
 
 class root:
   def GET(self):
@@ -81,11 +83,9 @@ class root:
       result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
         db.insert('discoplay_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(db), rdio_playlist_id=0)
-        print 'creating new entry'
         result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
-      print 'result', result
       
       response = '''
       <html><head><title>Discoplay</title></head><body>
