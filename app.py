@@ -52,7 +52,7 @@ def make_unique_email(db):
     name += letters[random.randrange(0, len(letters))]
     name += numbers[random.randrange(0, len(numbers))]
   print 'checking name', name, '...'
-  exists = db.select('discoplay_user', what='count(*)', where="email_to_address='%s'" % name)
+  exists = db.select('discoplay_user', what='count(*)', where="email_to_address='%s'" % name)[0]
   print 'exists?', exists
 
 class root:
