@@ -38,6 +38,7 @@ urls = (
   '/login', 'login',
   '/callback', 'callback',
   '/logout', 'logout',
+  '/savefromemail', 'savefromemail',
 )
 app = web.application(urls, globals())
 
@@ -67,8 +68,10 @@ class root:
         response += '''<li><a href="%(shortUrl)s">%(name)s</a></li>''' % playlist
       response += '</ul>'
       response += '''<form action="/savefromemail">
+        The address to which you should have VCast Song ID send song identification emails is %s
         Email address from which to expect VCast Song ID emails: <input type="text" name="fromemail"/>
-      </form>'''
+        <input type="submit" name="save" value="Save"/>
+      </form>''' % 'foo@bar.com'
       response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
       return response
     else:
@@ -127,6 +130,11 @@ class logout:
     # and go to the homepage
     raise web.seeother('/')
 
-
+class savefromemail:
+  def GET(self):
+    return 'POST, bitch!'
+  def POST(self):
+    return 'something something'
+  
 if __name__ == "__main__":
     app.run()
