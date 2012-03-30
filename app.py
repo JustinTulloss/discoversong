@@ -193,14 +193,14 @@ class save:
 class idsong:
   
   def POST(self):
-    print web.input()
     db = get_db()
 
     from_address = web.input()['from']
     result = db.select('discoplay_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
     print result
     
-    rdio, current_user = get_rdio_and_current_user(access_token=result[0]['access_token'], access_token_secret=result[0]['access_token_secret'])
+    rdio, current_user = get_rdio_and_current_user(access_token=result['access_token'], access_token_secret=result['access_token_secret'])
+    
     
     print 'now need to parse, search, and save!', current_user
     
