@@ -161,9 +161,7 @@ class logout:
 class save:
   def GET(self):
     print 'save'
-    print web.__dict__
-    print web.ctx
-    
+    print web.ctx['query']
 
 class idsong:
   def POST(self):
