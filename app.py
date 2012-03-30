@@ -43,6 +43,12 @@ urls = (
 )
 app = web.application(urls, globals())
 
+letters = 'abcdefghijklmnopqrstuvwxyz'
+numbers = '1234567890'
+def make_unique_email():
+  name = ''
+  
+
 class root:
   def GET(self):
     access_token = web.cookies().get('at')
@@ -67,21 +73,24 @@ class root:
           dbn='postgres', host='pg60.sharedpg.heroku.com', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
       
       result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
+      if len(result) == 0:
+        db.insert('discoplay_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(), rdio_playlist_id=0)
+        print 'creating new entry'
+        result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
+      else:
+        result = result[0]
       print 'result', result
       
       response = '''
       <html><head><title>Discoplay</title></head><body>
-      <p>%s's playlists:</p>
-      <ul>
       ''' % currentUser['firstName']
-      for playlist in myPlaylists:
-        response += '''<li><a href="%(shortUrl)s">%(name)s</a></li>''' % playlist
-      response += '</ul>'
+      
       response += '''<form action="/savefromemail">
         <table border=0>
-        <tr><th>Send Song ID emails to</th><th>Discoplay expects emails from</th><th>Save</th></tr>
-        <tr><td>%s</td><td><input type="text" name="fromemail"/></td><td><input type="submit" name="save" value="Save"/></td></tr>
-      </form>''' % 'foo@bar.com'
+        <tr><th>Send Song ID emails to</th><th>Discoplay expects emails from</th><th>Playlist to save to</th><th>Save</th></tr>
+        <tr><td>%s</td><td><input type="text" name="fromemail"/></td><td><select name="playlist_id">%s</select></td><td><input type="submit" name="save" value="Save"/></td></tr>
+      </form>''' % (result['email_to_address'], ''.join(['<option value=%i>%s</option>' % (int(playlist['key'][1:]), playlist['name']) for playlist in myPlaylists]))
+
       response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
       return response
     else:
