@@ -58,7 +58,9 @@ class root:
         raise web.seeother('/logout')
       
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
-
+      
+      db = web.database(dburl='postgres://tguaspklkhnrpn:4KBnjLB1n5wbuvzNB4p7DyQEpF@pg60.sharedpg.heroku.com/vivid_winter_30977')
+      
       response = '''
       <html><head><title>Discoplay</title></head><body>
       <p>%s's playlists:</p>
@@ -131,8 +133,6 @@ class logout:
     raise web.seeother('/')
 
 class savefromemail:
-  def GET(self):
-    return 'POST, bitch!'
   def POST(self):
     return 'something something'
   

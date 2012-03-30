@@ -34,7 +34,16 @@
       <file leaf-file-name="app.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="71" column="98" selection-start="2705" selection-end="2705" vertical-scroll-proportion="0.42561448">
+            <state line="61" column="127" selection-start="2366" selection-end="2366" vertical-scroll-proportion="0.55886155">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="db.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file:///Library/Python/2.6/site-packages/web.py-0.36-py2.6.egg/web/db.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="1133" column="4" selection-start="37281" selection-end="37281" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -301,9 +310,16 @@
         <state line="4" column="0" selection-start="174" selection-end="174" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
+    <entry file="file:///Library/Python/2.6/site-packages/web.py-0.36-py2.6.egg/web/db.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1133" column="4" selection-start="37281" selection-end="37281" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="71" column="98" selection-start="2705" selection-end="2705" vertical-scroll-proportion="0.42561448">
+        <state line="61" column="127" selection-start="2366" selection-end="2366" vertical-scroll-proportion="0.55886155">
           <folding />
         </state>
       </provider>
