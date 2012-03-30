@@ -20,6 +20,7 @@
 # THE SOFTWARE.
 
 # include the parent directory in the Python path
+import random
 import sys,os.path
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -45,9 +46,14 @@ app = web.application(urls, globals())
 
 letters = 'abcdefghijklmnopqrstuvwxyz'
 numbers = '1234567890'
-def make_unique_email():
+def make_unique_email(db):
   name = ''
-  
+  for i in range(15):
+    name += letters[random.randrange(0, len(letters))]
+    name += numbers[random.randrange(0, len(numbers))]
+  print 'checking name', name, '...'
+  exists = db.select('discoplay_user', what='count(*)', where='email_to_address="%s"' % name)
+  print 'exists?', exists
 
 class root:
   def GET(self):
@@ -74,7 +80,7 @@ class root:
       
       result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
-        db.insert('discoplay_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(), rdio_playlist_id=0)
+        db.insert('discoplay_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(db), rdio_playlist_id=0)
         print 'creating new entry'
         result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
       else:
