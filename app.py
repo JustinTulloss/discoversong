@@ -162,6 +162,7 @@ class save:
   def GET(self):
     print 'save'
     print web.ctx['query']
+    print web.input()
 
 class idsong:
   def POST(self):
