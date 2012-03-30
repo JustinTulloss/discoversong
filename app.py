@@ -68,7 +68,7 @@ class root:
           dbn='postgres', host='pg60.sharedpg.heroku.com', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
       
       result = db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id)
-      print result
+      print 'result', result
       
       response = '''
       <html><head><title>Discoplay</title></head><body>
