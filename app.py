@@ -70,6 +70,8 @@ def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NO
   if access_token and access_token_secret:
     print 'access_token', access_token
     print 'access_token_secret', access_token_secret
+    print 'RDIO_CONSUMER_KEY', RDIO_CONSUMER_KEY
+    print 'RDIO_CONSUMER_SECRET', RDIO_CONSUMER_SECRET
 
     rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
       (access_token, access_token_secret))
