@@ -69,7 +69,7 @@ class root:
       response += '</ul>'
       response += '''<form action="/savefromemail">
         <table border=0>
-        <th><td>Send Song ID emails to</td><td>Discoplay expects emails from</td><td>Save</td></th>
+        <tr><th>Send Song ID emails to</th><th>Discoplay expects emails from</th><th>Save</th></tr>
         <tr><td>%s</td><td><input type="text" name="fromemail"/></td><td><input type="submit" name="save" value="Save"/></td></tr>
       </form>''' % 'foo@bar.com'
       response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
