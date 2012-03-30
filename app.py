@@ -60,9 +60,12 @@ def make_unique_email(db):
   #else:
   #  return name
 
-def get_rdio_and_current_user(access_token=None, access_token_secret=None):
-  access_token = access_token or web.cookies().get('at')
-  access_token_secret = access_token_secret or web.cookies().get('ats')
+NOT_SPECIFIED = object()
+def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NOT_SPECIFIED):
+  if access_token == NOT_SPECIFIED:
+    access_token = web.cookies().get('at')
+  if access_token_secret == NOT_SPECIFIED:
+    access_token_secret = web.cookies().get('ats')
   
   if access_token and access_token_secret:
     print 'access_token', access_token
