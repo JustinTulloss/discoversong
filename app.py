@@ -63,7 +63,11 @@ def make_unique_email(db):
 def get_rdio_and_current_user(access_token=None, access_token_secret=None):
   access_token = access_token or web.cookies().get('at')
   access_token_secret = access_token_secret or web.cookies().get('ats')
+  
   if access_token and access_token_secret:
+    print 'access_token', access_token
+    print 'access_token_secret', access_token_secret
+
     rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
       (access_token, access_token_secret))
     # make sure that we can make an authenticated call
@@ -197,9 +201,13 @@ class idsong:
 
     from_address = web.input()['from']
     result = db.select('discoplay_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
-    print result
     
-    rdio, current_user = get_rdio_and_current_user(access_token=result['access_token'], access_token_secret=result['access_token_secret'])
+    access_token = result['access_token']
+    access_token_secret = result['access_token_secret']
+    print 'access_token', access_token
+    print 'access_token_secret', access_token_secret
+
+    rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
     
     print 'now need to parse, search, and save!', current_user
