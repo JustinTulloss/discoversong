@@ -57,14 +57,14 @@ class root:
         # this almost certainly means that authentication has been revoked for the app. log out.
         raise web.seeother('/logout')
       
-      print currentUser
+      user_id = int(currentUser['key'][1:])
       
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
       
       db = web.database(dburl='postgres://tguaspklkhnrpn:4KBnjLB1n5wbuvzNB4p7DyQEpF@pg60.sharedpg.heroku.com/vivid_winter_30977',
           dbn='postgres', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
       
-      result = db.select(['email_from_address', 'email_to_address', 'rdio_playlist_id'], where="rdio_user_id=%i" % currentUser.id)
+      result = db.select(['email_from_address', 'email_to_address', 'rdio_playlist_id'], where="rdio_user_id=%i" % user_id)
       print result
       
       response = '''
