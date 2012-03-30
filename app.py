@@ -40,7 +40,7 @@ urls = (
   '/login', 'login',
   '/callback', 'callback',
   '/logout', 'logout',
-  '/savefromemail', 'savefromemail',
+  '/save', 'save',
   '/idsong', 'idsong',
 )
 app = web.application(urls, globals())
@@ -94,7 +94,7 @@ class root:
       Welcome %s!
       ''' % currentUser['firstName']
       
-      response += '''<form action="/savefromemail">
+      response += '''<form action="/save">
         <table border=0>
         <tr><th>Send Song ID emails to</th><th>Discoplay expects emails from</th><th>Playlist to save to</th><th>Save</th></tr>
         <tr><td>%s</td><td><input type="text" name="fromemail"/></td><td><select name="playlist_id">%s</select></td><td><input type="submit" name="save" value="Save"/></td></tr>
@@ -158,9 +158,12 @@ class logout:
     # and go to the homepage
     raise web.seeother('/')
 
-class savefromemail:
-  def POST(self):
-    return 'something something'
+class save:
+  def GET(self):
+    print 'save'
+    print web.__dict__
+    print web.ctx
+    
 
 class idsong:
   def POST(self):
