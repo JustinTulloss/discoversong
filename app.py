@@ -192,6 +192,7 @@ class save:
 class idsong:
   def POST(self):
     print 'got email!!!!'
+    print web.input()
     return 'smth smth got email!'
 
 if __name__ == "__main__":
