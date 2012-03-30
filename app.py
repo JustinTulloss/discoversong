@@ -65,11 +65,15 @@ class root:
       ''' % currentUser['firstName']
       for playlist in myPlaylists:
         response += '''<li><a href="%(shortUrl)s">%(name)s</a></li>''' % playlist
-      response += '''</ul><a href="/logout">Log out of Rdio</a></body></html>'''
+      response += '</ul>'
+      response += '''<form action="/savefromemail">
+        Email address from which to expect VCast Song ID emails: <input type="text" name="fromemail"/>
+      </form>'''
+      response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
       return response
     else:
       return '''
-      <html><head><title>Rdio-Simple Example</title></head><body>
+      <html><head><title>Discoplay</title></head><body>
       <a href="/login">Log into Rdio</a>
       </body></html>
       '''
