@@ -60,9 +60,9 @@ def make_unique_email(db):
   #else:
   #  return name
 
-def get_rdio_and_current_user():
-  access_token = web.cookies().get('at')
-  access_token_secret = web.cookies().get('ats')
+def get_rdio_and_current_user(access_token=None, access_token_secret=None):
+  access_token = access_token or web.cookies().get('at')
+  access_token_secret = access_token_secret or web.cookies().get('ats')
   if access_token and access_token_secret:
     rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
       (access_token, access_token_secret))
@@ -86,7 +86,6 @@ def get_db():
 class root:
   def GET(self):
     
-    
     rdio, currentUser = get_rdio_and_current_user()
     
     if rdio and currentUser:
@@ -98,7 +97,9 @@ class root:
       
       result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
-        db.insert('discoplay_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(db), rdio_playlist_id=0)
+        access_token = web.cookies().get('at')
+        access_token_secret = web.cookies().get('ats')
+        db.insert('discoplay_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(db), rdio_playlist_id=0, access_token=access_token, access_token_secret=access_token_secret)
         result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
@@ -190,10 +191,20 @@ class save:
     raise web.seeother('/?saved=True') 
 
 class idsong:
+  
   def POST(self):
-    print 'got email!!!!'
     print web.input()
-    return 'smth smth got email!'
+    db = get_db()
+
+    from_address = web.input()['from']
+    result = db.select('discoplay_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address=%i" % from_address)[0]
+    print result
+    
+    rdio, current_user = get_rdio_and_current_user(access_token=result[0]['access_token'], access_token_secret=result[0]['access_token_secret'])
+    
+    print 'now need to parse, search, and save!', current_user
+    
+    return None
 
 if __name__ == "__main__":
     app.run()
