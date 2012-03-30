@@ -20,8 +20,7 @@
 # THE SOFTWARE.
 
 # include the parent directory in the Python path
-import random
-import sys,os.path
+import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -48,7 +47,9 @@ app = web.application(urls, globals())
 letters = 'abcdefghijklmnopqrstuvwxyz'
 numbers = '1234567890'
 def make_unique_email(db):
+  assert db != None
   return '61212cf0152d9aff08a7@cloudmailin.net'
+  #import random
   #name = ''
   #for i in range(15):
   #  name += letters[random.randrange(0, len(letters))]
@@ -59,28 +60,41 @@ def make_unique_email(db):
   #else:
   #  return name
 
+def get_rdio_and_current_user():
+  access_token = web.cookies().get('at')
+  access_token_secret = web.cookies().get('ats')
+  if access_token and access_token_secret:
+    rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
+      (access_token, access_token_secret))
+    # make sure that we can make an authenticated call
+  
+    try:
+      currentUser = rdio.call('currentUser')['result']
+    except urllib2.HTTPError:
+      # this almost certainly means that authentication has been revoked for the app. log out.
+      raise web.seeother('/logout')
+    return rdio, currentUser
+  else:
+    return None, None
+  
+def get_db():
+  dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
+  db = web.database(dburl=dburl,
+      dbn='postgres', host='pg60.sharedpg.heroku.com', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
+  return db
+
 class root:
   def GET(self):
-    access_token = web.cookies().get('at')
-    access_token_secret = web.cookies().get('ats')
-    if access_token and access_token_secret:
-      rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
-        (access_token, access_token_secret))
-      # make sure that we can make an authenticated call
-
-      try:
-        currentUser = rdio.call('currentUser')['result']
-      except urllib2.HTTPError:
-        # this almost certainly means that authentication has been revoked for the app. log out.
-        raise web.seeother('/logout')
-      
+    
+    
+    rdio, currentUser = get_rdio_and_current_user()
+    
+    if rdio and currentUser:
       user_id = int(currentUser['key'][1:])
       
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
       
-      dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
-      db = web.database(dburl=dburl,
-          dbn='postgres', host='pg60.sharedpg.heroku.com', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
+      db = get_db()
       
       result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
@@ -89,16 +103,20 @@ class root:
       else:
         result = result[0]
       
+      message = ''
+      if 'saved' in web.input():
+        message = '  Saved your selections.'
+
       response = '''
       <html><head><title>Discoplay</title></head><body>
-      Welcome %s!
-      ''' % currentUser['firstName']
+      Welcome %s!%s
+      ''' % (currentUser['firstName'], message)
       
       response += '''<form action="/save">
         <table border=0>
         <tr><th>Send Song ID emails to</th><th>Discoplay expects emails from</th><th>Playlist to save to</th><th>Save</th></tr>
-        <tr><td>%s</td><td><input type="text" name="fromemail"/></td><td><select name="playlist_id">%s</select></td><td><input type="submit" name="save" value="Save"/></td></tr>
-      </form>''' % (result['email_to_address'], ''.join(['<option value=%i>%s</option>' % (int(playlist['key'][1:]), playlist['name']) for playlist in myPlaylists]))
+        <tr><td>%s</td><td><input type="text" name="fromemail" value="%s"/></td><td><select name="playlist_id">%s</select></td><td><input type="submit" name="save" value="Save"/></td></tr>
+      </form>''' % (result['email_to_address'], result['email_from_address'], ''.join(['<option value=%i %s>%s</option>' % (int(playlist['key'][1:]), 'selected=True' if int(playlist['key'][1:]) == result['rdio_playlist_id'] else '', playlist['name']) for playlist in myPlaylists]))
 
       response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
       return response
@@ -159,10 +177,17 @@ class logout:
     raise web.seeother('/')
 
 class save:
+    
   def GET(self):
-    print 'save'
-    print web.ctx['query']
-    print web.input()
+    
+    rdio, currentUser = get_rdio_and_current_user()
+    user_id = int(currentUser['key'][1:])
+    
+    db = get_db()
+    
+    db.update('discoplay_user', where="rdio_user_id=%i" % user_id, email_from_address=web.input()['fromemail'], rdio_playlist_id=int(web.input()['playlist_id']))
+    
+    raise web.seeother('/?saved=True') 
 
 class idsong:
   def POST(self):
