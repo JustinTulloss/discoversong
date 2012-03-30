@@ -55,11 +55,11 @@ class root:
       except urllib2.HTTPError:
         # this almost certainly means that authentication has been revoked for the app. log out.
         raise web.seeother('/logout')
-
+      
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
 
       response = '''
-      <html><head><title>Rdio-Simple Example</title></head><body>
+      <html><head><title>Discoplay</title></head><body>
       <p>%s's playlists:</p>
       <ul>
       ''' % currentUser['firstName']
