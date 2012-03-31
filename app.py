@@ -43,6 +43,8 @@ urls = (
 )
 app = web.application(urls, globals())
 
+render = web.template.render('templates/')
+
 letters = 'abcdefghijklmnopqrstuvwxyz'
 numbers = '1234567890'
 def make_unique_email(db):
@@ -144,11 +146,7 @@ class root:
       response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
       return response
     else:
-      return '''
-      <html><head><title>Discoplay</title></head><body>
-      <a href="/login">Log into Rdio</a>
-      </body></html>
-      '''
+      return render.loggedout()
 
 class login:
   def GET(self):
