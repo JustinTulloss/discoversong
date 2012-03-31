@@ -240,7 +240,6 @@ class idsong:
     db = get_db()
 
     from_address = web.input()['from']
-    print web.input()['plain']
     
     result = db.select('discoplay_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
     
@@ -255,10 +254,8 @@ class idsong:
     
     try:
       title, artist = parse_vcast(subject)
-      print 'vcast parsed', title, artist
     except:
       title, artist = parse_shazam(subject)
-      print 'shazam parsed', title, artist
     
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
