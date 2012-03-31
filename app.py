@@ -27,7 +27,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # import the rdio-simple library
 from rdio import Rdio
 # and our example credentials
-from rdio_consumer_credentials import *
 
 # import web.py
 import web
@@ -154,7 +153,7 @@ class login:
     web.setcookie('rt', '', expires=-1)
     web.setcookie('rts', '', expires=-1)
     # begin the authentication process
-    rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET))
+    rdio = Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
     url = rdio.begin_authentication(callback_url = web.ctx.homedomain+'/callback')
     # save our request token in cookies
     web.setcookie('rt', rdio.token[0], expires=60*60*24) # expires in one day
