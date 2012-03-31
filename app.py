@@ -216,6 +216,8 @@ class idsong:
     
     access_token = str(result['access_token'])
     access_token_secret = str(result['access_token_secret'])
+    
+    playlist_key = 'p' + result['rdio_playlist_id']
 
     rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
@@ -228,16 +230,20 @@ class idsong:
     title_end = subject.find(separator)
     
     title = subject[title_start:title_end]
-    print 'title', title
     
     artist_start = title_end + len(separator)
     
     artist = subject[artist_start:]
-    print 'artist', artist
     
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
-    print search_result
+    for possible_hit in search_result['result']['results']:
+      
+      if possible_hit['canStream']:
+        
+        track_key = possible_hit['key']
+        rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': track_key})
+        break
     
     return None
 
