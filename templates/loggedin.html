@@ -1,0 +1,25 @@
+$def with (name, message, to_address, playlist_options)
+<html>
+  <head>
+    <title>discoversong</title>
+  </head>
+  <body>
+    Welcome $name!
+    $message
+    <form action="/save">
+      <table border="0">
+        <tr><th>Send Song ID emails to</th><td>$to_address</td></tr>
+        <tr>
+          <th>Playlist to save to</th>
+          <td>
+            <select name="playlist_id">
+              $playlist_options
+            </select>
+          </td>
+        </tr>
+        <tr><th>Save</th><td><input type="submit" name="save" value="Save"/></td></tr>
+      </table>
+    </form>
+    <a href="/logout">Log out of Rdio</a>
+  </body>
+</html>

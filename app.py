@@ -41,27 +41,26 @@ urls = (
   '/save', 'save',
   '/idsong', 'idsong',
 )
+
 app = web.application(urls, globals())
 
 render = web.template.render('templates/')
 
 letters = 'abcdefghijklmnopqrstuvwxyz'
-numbers = '1234567890'
-def make_unique_email(db):
-  assert db != None
-  return '61212cf0152d9aff08a7@cloudmailin.net'
-  #import random
-  #name = ''
-  #for i in range(15):
-  #  name += letters[random.randrange(0, len(letters))]
-  #  name += numbers[random.randrange(0, len(numbers))]
-  #exists = db.select('discoversong_user', what='count(*)', where="email_to_address='%s'" % name)[0]
-  #if exists['count'] > 0:
-  #  return make_unique_email(db)
-  #else:
-  #  return name
 
 NOT_SPECIFIED = object()
+
+def make_unique_email(db):
+  import random
+  name = ''
+  for i in range(10):
+    name += letters[random.randrange(0, len(letters))]
+    name += str(random.randrange(0, 9))
+  name += '@discoversong.com'
+  
+  exists = db.select('discoversong_user', what='count(*)', where="email_to_address='%s'" % name)[0]
+  
+  return name if exists['count'] == 0 else make_unique_email(db)
 
 def get_rdio():
   return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
@@ -130,21 +129,13 @@ class root:
       if 'saved' in web.input():
         message = '  Saved your selections.'
 
-      response = '''
-      <html><head><title>discoversong</title></head><body>
-      Welcome %s!%s
-      ''' % (currentUser['firstName'], message)
-      
-      response += '''<form action="/save">
-        <table border=0>
-        <tr><th>Send Song ID emails to</th><td>%s</td></tr>
-        <tr><th>discoversong expects emails from</th><td><input type="text" name="fromemail" value="%s"/></td></tr>
-        <tr><th>Playlist to save to</th><td><select name="playlist_id">%s</select></td></tr>
-        <tr><th>Save</th><td><input type="submit" name="save" value="Save"/></td></tr>
-      </form>''' % (result['email_to_address'], result['email_from_address'], ''.join(['<option value=%i %s>%s</option>' % (int(playlist['key'][1:]), 'selected=True' if int(playlist['key'][1:]) == result['rdio_playlist_id'] else '', playlist['name']) for playlist in myPlaylists]))
-
-      response += '''<a href="/logout">Log out of Rdio</a></body></html>'''
-      return response
+      return render.loggedin(name=currentUser['firstName'],
+                             message=message,
+                             to_address=result['email_to_address'],
+                             playlist_options=''.join(
+                                 ['<option value=%i %s>%s</option>' % (int(playlist['key'][1:]),
+                                                                       'selected=True' if int(playlist['key'][1:]) == result['rdio_playlist_id'] else '',
+                                                                       playlist['name']) for playlist in myPlaylists]))
     else:
       return render.loggedout()
 
@@ -231,11 +222,30 @@ def parse_shazam(subject):
   separator =  '- '
   
   title_end = subject.find(separator)
+  if title_end < 0:
+    raise ValueError('not Shazam!')
+  
   title = subject[:title_end]
   
   artist_start = title_end + len(separator)
   artist = subject[artist_start:]
   return title, artist
+
+def parse_unknown(subject):
+  return subject, ''
+
+def parse(subject):
+  parsers = [parse_vcast,
+             parse_shazam,
+             parse_unknown] # this should always be last
+  
+  for parse in parsers:
+    try:
+      parsed = parse(subject)
+      return parsed
+    except:
+      continue
+  raise ValueError('at least the unknown parser should have worked!')
 
 class idsong:
 
@@ -243,6 +253,7 @@ class idsong:
     db = get_db()
 
     from_address = web.input()['from']
+    print web.input()['from'], web.input().keys(), web.input()['plain']
     
     result = db.select('discoversong_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
     
@@ -255,10 +266,7 @@ class idsong:
     
     subject = web.input()['subject']
     
-    try:
-      title, artist = parse_vcast(subject)
-    except:
-      title, artist = parse_shazam(subject)
+    title, artist = parse(subject)
     
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
