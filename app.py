@@ -26,12 +26,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # import the rdio-simple library
 from rdio import Rdio
-# and our example credentials
 
-# import web.py
 import web
 
 import urllib2
+
+from includes import *
 
 urls = (
   '/', 'root',
@@ -45,10 +45,6 @@ urls = (
 app = web.application(urls, globals())
 
 render = web.template.render('templates/')
-
-letters = 'abcdefghijklmnopqrstuvwxyz'
-
-NOT_SPECIFIED = object()
 
 class discoversong:
 
@@ -157,8 +153,6 @@ class discoversong:
       except:
         continue
     raise ValueError('at least the unknown parser should have worked!')
-  
-  
 
 class root:
   def GET(self):
@@ -196,6 +190,7 @@ class root:
       return render.loggedout()
 
 class login:
+  
   def GET(self):
     # clear all of our auth cookies
     web.setcookie('at', '', expires=-1)
@@ -212,6 +207,7 @@ class login:
     raise web.seeother(url)
 
 class callback:
+  
   def GET(self):
     # get the state from cookies and the query string
     request_token = web.cookies().get('rt')
@@ -234,6 +230,7 @@ class callback:
       raise web.seeother('/logout')
     
 class logout:
+  
   def GET(self):
     # clear all of our auth cookies
     web.setcookie('at', '', expires=-1)
