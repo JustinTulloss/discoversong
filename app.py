@@ -176,9 +176,9 @@ class discoversong:
     from web import form
     
     editform = form.Form(
-        form.Dropdown(name='playlist_key', description='Playlist to save songs to', value=selected, args=[(playlist['key'], playlist['name']) for playlist in playlists]),
-        form.Button('or create a new playlist', value='new'),
-        form.Button('Save', value='save'),
+        form.Dropdown(name='playlist', description='Playlist to save songs to', value=selected, args=[(playlist['key'], playlist['name']) for playlist in playlists]),
+        form.Button('new', html='or create a new playlist'),
+        form.Button('save', html='Save'),
     )
     
     return editform()
