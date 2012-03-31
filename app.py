@@ -211,7 +211,7 @@ class root:
       return render.loggedin(name=currentUser['firstName'],
                              message=message,
                              to_address=result['address'],
-                             editform=discoversong.get_editform(myPlaylists, result['playlist']).render()
+                             editform=discoversong.get_editform(myPlaylists, result['playlist'])
                             )
     else:
       return render.loggedout()
