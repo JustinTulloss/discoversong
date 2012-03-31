@@ -131,14 +131,14 @@ class root:
         message = '  Saved your selections.'
 
       response = '''
-      <html><head><title>Discoplay</title></head><body>
+      <html><head><title>discoversong</title></head><body>
       Welcome %s!%s
       ''' % (currentUser['firstName'], message)
       
       response += '''<form action="/save">
         <table border=0>
         <tr><th>Send Song ID emails to</th><td>%s</td></tr>
-        <tr><th>Discoplay expects emails from</th><td><input type="text" name="fromemail" value="%s"/></td></tr>
+        <tr><th>discoversong expects emails from</th><td><input type="text" name="fromemail" value="%s"/></td></tr>
         <tr><th>Playlist to save to</th><td><select name="playlist_id">%s</select></td></tr>
         <tr><th>Save</th><td><input type="submit" name="save" value="Save"/></td></tr>
       </form>''' % (result['email_to_address'], result['email_from_address'], ''.join(['<option value=%i %s>%s</option>' % (int(playlist['key'][1:]), 'selected=True' if int(playlist['key'][1:]) == result['rdio_playlist_id'] else '', playlist['name']) for playlist in myPlaylists]))
