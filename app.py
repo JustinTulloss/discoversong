@@ -50,77 +50,133 @@ letters = 'abcdefghijklmnopqrstuvwxyz'
 
 NOT_SPECIFIED = object()
 
-def make_unique_email(db):
-  import random
-  name = ''
-  for i in range(10):
-    name += letters[random.randrange(0, len(letters))]
-    name += str(random.randrange(0, 9))
-  name += '@discoversong.com'
-  
-  exists = db.select('discoversong_user', what='count(*)', where="email_to_address='%s'" % name)[0]
-  
-  return name if exists['count'] == 0 else make_unique_email(db)
+class discoversong:
 
-def get_rdio():
-  return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
-
-def get_rdio_with_access(token, secret):
-  return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']), (token, secret))
-
-def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NOT_SPECIFIED):
+  @staticmethod
+  def make_unique_email(db):
+    import random
+    name = ''
+    for i in range(10):
+      name += letters[random.randrange(0, len(letters))]
+      name += str(random.randrange(0, 9))
+    name += '@discoversong.com'
     
-  if access_token == NOT_SPECIFIED:
-    access_token = web.cookies().get('at')
-  if access_token_secret == NOT_SPECIFIED:
-    access_token_secret = web.cookies().get('ats')
-  
-  if access_token and access_token_secret:
-
-    rdio = get_rdio_with_access(access_token, access_token_secret)
-    # make sure that we can make an authenticated call
-  
-    try:
-      currentUser = rdio.call('currentUser')['result']
-    except urllib2.HTTPError:
-      # this almost certainly means that authentication has been revoked for the app. log out.
-      raise web.seeother('/logout')
+    exists = db.select('discoversong_user', what='count(*)', where="email_to_address='%s'" % name)[0]
     
-    return rdio, currentUser
+    return name if exists['count'] == 0 else discoversong.make_unique_email(db)
   
-  else:
+  def get_rdio():
+    return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
+  
+  @staticmethod
+  def get_rdio_with_access(token, secret):
+    return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']), (token, secret))
+  
+  @staticmethod
+  def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NOT_SPECIFIED):
+      
+    if access_token == NOT_SPECIFIED:
+      access_token = web.cookies().get('at')
+    if access_token_secret == NOT_SPECIFIED:
+      access_token_secret = web.cookies().get('ats')
     
-    return None, None
+    if access_token and access_token_secret:
   
-def get_db():
+      rdio = discoversong.get_rdio_with_access(access_token, access_token_secret)
+      # make sure that we can make an authenticated call
+    
+      try:
+        currentUser = rdio.call('currentUser')['result']
+      except urllib2.HTTPError:
+        # this almost certainly means that authentication has been revoked for the app. log out.
+        raise web.seeother('/logout')
+      
+      return rdio, currentUser
+    
+    else:
+      
+      return None, None
+    
+  def get_db():
   
-  dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
+    dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
+    
+    db = web.database(dburl=dburl,
+                      dbn='postgres',
+                      host='pg60.sharedpg.heroku.com',
+                      user='tguaspklkhnrpn',
+                      pw='4KBnjLB1n5wbuvzNB4p7DyQEpF',
+                      db='vivid_winter_30977')
+    return db
   
-  db = web.database(dburl=dburl,
-                    dbn='postgres',
-                    host='pg60.sharedpg.heroku.com',
-                    user='tguaspklkhnrpn',
-                    pw='4KBnjLB1n5wbuvzNB4p7DyQEpF',
-                    db='vivid_winter_30977')
-  return db
+  @staticmethod
+  def parse_vcast(subject):
+    lead = 'Music ID: "'
+    separator = '" by '
+    
+    if subject.find(lead) < 0 or subject.find(separator) < 0:
+      raise ValueError('not VCast!')
+    
+    title_start = subject.find(lead) + len(lead)
+    title_end = subject.find(separator)
+    
+    title = subject[title_start:title_end]
+    
+    artist_start = title_end + len(separator)
+    
+    artist = subject[artist_start:]
+  
+    return title, artist
+  
+  @staticmethod
+  def parse_shazam(subject):
+    separator =  '- '
+    
+    title_end = subject.find(separator)
+    if title_end < 0:
+      raise ValueError('not Shazam!')
+    
+    title = subject[:title_end]
+    
+    artist_start = title_end + len(separator)
+    artist = subject[artist_start:]
+    return title, artist
+  
+  def parse_unknown(subject):
+    return subject, ''
+  
+  def parse(subject):
+    parsers = [discoversong.parse_vcast,
+               discoversong.parse_shazam,
+               discoversong.parse_unknown] # this should always be last
+    
+    for parse in parsers:
+      try:
+        parsed = parse(subject)
+        return parsed
+      except:
+        continue
+    raise ValueError('at least the unknown parser should have worked!')
+  
+  
 
 class root:
   def GET(self):
     
-    rdio, currentUser = get_rdio_and_current_user()
+    rdio, currentUser = discoversong.get_rdio_and_current_user()
     
     if rdio and currentUser:
       user_id = int(currentUser['key'][1:])
       
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
       
-      db = get_db()
+      db = discoversong.get_db()
       
       result = list(db.select('discoversong_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
         access_token = web.cookies().get('at')
         access_token_secret = web.cookies().get('ats')
-        db.insert('discoversong_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(db), rdio_playlist_id=0, access_token=access_token, access_token_secret=access_token_secret)
+        db.insert('discoversong_user', rdio_user_id=user_id, email_from_address=None, email_to_address=discoversong.make_unique_email(db), rdio_playlist_id=0, access_token=access_token, access_token_secret=access_token_secret)
         result = list(db.select('discoversong_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
@@ -147,7 +203,7 @@ class login:
     web.setcookie('rt', '', expires=-1)
     web.setcookie('rts', '', expires=-1)
     # begin the authentication process
-    rdio = get_rdio()
+    rdio = discoversong.get_rdio()
     url = rdio.begin_authentication(callback_url = web.ctx.homedomain+'/callback')
     # save our request token in cookies
     web.setcookie('rt', rdio.token[0], expires=60*60*24) # expires in one day
@@ -164,7 +220,7 @@ class callback:
     # make sure we have everything we need
     if request_token and request_token_secret and verifier:
       # exchange the verifier and request token for an access token
-      rdio = get_rdio_with_access(request_token, request_token_secret)
+      rdio = discoversong.get_rdio_with_access(request_token, request_token_secret)
       rdio.complete_authentication(verifier)
       # save the access token in cookies (and discard the request token)
       web.setcookie('at', rdio.token[0], expires=60*60*24*14) # expires in two weeks
@@ -191,66 +247,19 @@ class save:
     
   def GET(self):
     
-    rdio, currentUser = get_rdio_and_current_user()
+    rdio, currentUser = discoversong.get_rdio_and_current_user()
     user_id = int(currentUser['key'][1:])
     
-    db = get_db()
+    db = discoversong.get_db()
     
     db.update('discoversong_user', where="rdio_user_id=%i" % user_id, email_from_address=web.input()['fromemail'], rdio_playlist_id=int(web.input()['playlist_id']))
     
     raise web.seeother('/?saved=True') 
 
-def parse_vcast(subject):
-  lead = 'Music ID: "'
-  separator = '" by '
-  
-  if subject.find(lead) < 0 or subject.find(separator) < 0:
-    raise ValueError('not VCast!')
-  
-  title_start = subject.find(lead) + len(lead)
-  title_end = subject.find(separator)
-  
-  title = subject[title_start:title_end]
-  
-  artist_start = title_end + len(separator)
-  
-  artist = subject[artist_start:]
-
-  return title, artist
-
-def parse_shazam(subject):
-  separator =  '- '
-  
-  title_end = subject.find(separator)
-  if title_end < 0:
-    raise ValueError('not Shazam!')
-  
-  title = subject[:title_end]
-  
-  artist_start = title_end + len(separator)
-  artist = subject[artist_start:]
-  return title, artist
-
-def parse_unknown(subject):
-  return subject, ''
-
-def parse(subject):
-  parsers = [parse_vcast,
-             parse_shazam,
-             parse_unknown] # this should always be last
-  
-  for parse in parsers:
-    try:
-      parsed = parse(subject)
-      return parsed
-    except:
-      continue
-  raise ValueError('at least the unknown parser should have worked!')
-
 class idsong:
 
   def POST(self):
-    db = get_db()
+    db = discoversong.get_db()
 
     from_address = web.input()['from']
     print web.input()['from'], web.input().keys(), web.input()['plain']
@@ -262,11 +271,11 @@ class idsong:
     
     playlist_key = 'p%i' % result['rdio_playlist_id']
 
-    rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
+    rdio, current_user = discoversong.get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
     subject = web.input()['subject']
     
-    title, artist = parse(subject)
+    title, artist = discoversong.parse(subject)
     
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
