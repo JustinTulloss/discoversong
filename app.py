@@ -222,6 +222,7 @@ class idsong:
     rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
     subject = web.input()['subject']
+    print web.input()['plain']
     
     lead = 'Music ID: "'
     separator = '" by '
