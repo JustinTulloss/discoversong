@@ -6,7 +6,7 @@ $def with (name, message, to_address, editform)
   <body>
     Welcome $name!
     $message
-    $editform
+    $:editform.render()
     <a href="/logout">Log out of Rdio</a>
   </body>
 </html>
