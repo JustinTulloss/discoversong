@@ -53,7 +53,7 @@ def make_unique_email(db):
   #for i in range(15):
   #  name += letters[random.randrange(0, len(letters))]
   #  name += numbers[random.randrange(0, len(numbers))]
-  #exists = db.select('discoplay_user', what='count(*)', where="email_to_address='%s'" % name)[0]
+  #exists = db.select('discoversong_user', what='count(*)', where="email_to_address='%s'" % name)[0]
   #if exists['count'] > 0:
   #  return make_unique_email(db)
   #else:
@@ -115,12 +115,12 @@ class root:
       
       db = get_db()
       
-      result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
+      result = list(db.select('discoversong_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
         access_token = web.cookies().get('at')
         access_token_secret = web.cookies().get('ats')
-        db.insert('discoplay_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(db), rdio_playlist_id=0, access_token=access_token, access_token_secret=access_token_secret)
-        result = list(db.select('discoplay_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
+        db.insert('discoversong_user', rdio_user_id=user_id, email_from_address=None, email_to_address=make_unique_email(db), rdio_playlist_id=0, access_token=access_token, access_token_secret=access_token_secret)
+        result = list(db.select('discoversong_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
       
@@ -207,7 +207,7 @@ class save:
     
     db = get_db()
     
-    db.update('discoplay_user', where="rdio_user_id=%i" % user_id, email_from_address=web.input()['fromemail'], rdio_playlist_id=int(web.input()['playlist_id']))
+    db.update('discoversong_user', where="rdio_user_id=%i" % user_id, email_from_address=web.input()['fromemail'], rdio_playlist_id=int(web.input()['playlist_id']))
     
     raise web.seeother('/?saved=True') 
 
@@ -246,7 +246,7 @@ class idsong:
 
     from_address = web.input()['from']
     
-    result = db.select('discoplay_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
+    result = db.select('discoversong_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
     
     access_token = str(result['access_token'])
     access_token_secret = str(result['access_token_secret'])
