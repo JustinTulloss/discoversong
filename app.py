@@ -217,7 +217,7 @@ class idsong:
     access_token = str(result['access_token'])
     access_token_secret = str(result['access_token_secret'])
     
-    playlist_key = 'p' + result['rdio_playlist_id']
+    playlist_key = 'p%i' % result['rdio_playlist_id']
 
     rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
