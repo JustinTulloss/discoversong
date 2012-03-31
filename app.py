@@ -219,7 +219,21 @@ class idsong:
 
     rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
-    print web.input().keys()
+    subject = web.input()['subject']
+    
+    lead = 'Music ID: "'
+    separator = '" by '
+    
+    title_start = subject.find(lead) + len(lead)
+    title_end = subject.find(separator)
+    
+    title = subject[title_start:title_end]
+    print 'title', title
+    
+    artist_start = title_end + len(separator)
+    
+    artist = subject[artist_start:]
+    print 'artist', artist
     
     return None
 
