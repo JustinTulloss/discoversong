@@ -48,6 +48,7 @@ render = web.template.render('templates/')
 
 class discoversong:
 
+  @staticmethod
   def generate_name():
     import random
     name = ''
@@ -69,6 +70,7 @@ class discoversong:
     
     return name
   
+  @staticmethod
   def get_rdio():
     return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
   
@@ -100,7 +102,8 @@ class discoversong:
     else:
       
       return None, None
-    
+  
+  @staticmethod
   def get_db():
   
     dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
