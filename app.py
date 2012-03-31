@@ -235,7 +235,7 @@ class idsong:
     artist = subject[artist_start:]
     print 'artist', artist
     
-    search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track', 'never_or': 'true'})
+    search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
     print search_result
     
