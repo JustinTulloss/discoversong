@@ -48,18 +48,26 @@ render = web.template.render('templates/')
 
 class discoversong:
 
-  @staticmethod
-  def make_unique_email(db):
+  def generate_name():
     import random
     name = ''
     for i in range(10):
       name += letters[random.randrange(0, len(letters))]
       name += str(random.randrange(0, 9))
     name += '@discoversong.com'
+    return name
+  
+  @staticmethod
+  def make_unique_email(db):
     
-    exists = db.select('discoversong_user', what='count(*)', where="email_to_address='%s'" % name)[0]
+    exists = 1
+    name = None
     
-    return name if exists['count'] == 0 else discoversong.make_unique_email(db)
+    while exists > 0:
+      name = discoversong.generate_name()
+      exists = db.select('discoversong_user', what='count(*)', where="address='%s'" % name)[0]['count']
+    
+    return name
   
   def get_rdio():
     return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
@@ -107,6 +115,7 @@ class discoversong:
   
   @staticmethod
   def parse_vcast(subject):
+    
     lead = 'Music ID: "'
     separator = '" by '
     
@@ -126,6 +135,7 @@ class discoversong:
   
   @staticmethod
   def parse_shazam(subject):
+    
     separator =  '- '
     
     title_end = subject.find(separator)
@@ -138,10 +148,14 @@ class discoversong:
     artist = subject[artist_start:]
     return title, artist
   
+  @staticmethod
   def parse_unknown(subject):
+    
     return subject, ''
   
+  @staticmethod
   def parse(subject):
+    
     parsers = [discoversong.parse_vcast,
                discoversong.parse_shazam,
                discoversong.parse_unknown] # this should always be last
@@ -153,6 +167,17 @@ class discoversong:
       except:
         continue
     raise ValueError('at least the unknown parser should have worked!')
+  
+  @staticmethod
+  def get_editform(playlists, selected):
+    from web import form
+    
+    editform = form.Form(
+        form.Dropdown('playlist_key', args=[(playlist['key'], playlist['name']) for playlist in playlists], value=selected),
+        form.Button('Save'),
+    )
+    
+    return editform
 
 class root:
   def GET(self):
@@ -166,26 +191,25 @@ class root:
       
       db = discoversong.get_db()
       
-      result = list(db.select('discoversong_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))
+      result = list(db.select('discoversong_user', what='address, playlist', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
         access_token = web.cookies().get('at')
         access_token_secret = web.cookies().get('ats')
-        db.insert('discoversong_user', rdio_user_id=user_id, email_from_address=None, email_to_address=discoversong.make_unique_email(db), rdio_playlist_id=0, access_token=access_token, access_token_secret=access_token_secret)
-        result = list(db.select('discoversong_user', what='email_from_address, email_to_address, rdio_playlist_id', where="rdio_user_id=%i" % user_id))[0]
+        db.insert('discoversong_user', rdio_user_id=user_id, address=discoversong.make_unique_email(db), token=access_token, secret=access_token_secret)
+        result = list(db.select('discoversong_user', what='address, playlist', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
       
       message = ''
       if 'saved' in web.input():
         message = '  Saved your selections.'
-
+      
+      
       return render.loggedin(name=currentUser['firstName'],
                              message=message,
-                             to_address=result['email_to_address'],
-                             playlist_options=''.join(
-                                 ['<option value=%i %s>%s</option>' % (int(playlist['key'][1:]),
-                                                                       'selected=True' if int(playlist['key'][1:]) == result['rdio_playlist_id'] else '',
-                                                                       playlist['name']) for playlist in myPlaylists]))
+                             to_address=result['address'],
+                             editform=discoversong.get_editform(myPlaylists, result['playlist']).render()
+                            )
     else:
       return render.loggedout()
 
@@ -249,7 +273,7 @@ class save:
     
     db = discoversong.get_db()
     
-    db.update('discoversong_user', where="rdio_user_id=%i" % user_id, email_from_address=web.input()['fromemail'], rdio_playlist_id=int(web.input()['playlist_id']))
+    db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=web.input()['playlist'])
     
     raise web.seeother('/?saved=True') 
 
@@ -258,15 +282,15 @@ class idsong:
   def POST(self):
     db = discoversong.get_db()
 
-    from_address = web.input()['from']
+    to_address = web.input()['to']
     print web.input()['from'], web.input().keys(), web.input()['plain']
     
-    result = db.select('discoversong_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
+    result = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)[0]
     
-    access_token = str(result['access_token'])
-    access_token_secret = str(result['access_token_secret'])
+    access_token = str(result['token'])
+    access_token_secret = str(result['secret'])
     
-    playlist_key = 'p%i' % result['rdio_playlist_id']
+    playlist_key = result['rdio_playlist_key']
 
     rdio, current_user = discoversong.get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
