@@ -207,8 +207,8 @@ class idsong:
     from_address = web.input()['from']
     result = db.select('discoplay_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
     
-    access_token = result['access_token']
-    access_token_secret = result['access_token_secret']
+    access_token = str(result['access_token'])
+    access_token_secret = str(result['access_token_secret'])
     print 'access_token', access_token
     print 'access_token_secret', access_token_secret
 
