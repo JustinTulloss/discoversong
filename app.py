@@ -206,8 +206,33 @@ class save:
     
     raise web.seeother('/?saved=True') 
 
-class idsong:
+def parse_vcast(subject):
+  lead = 'Music ID: "'
+  separator = '" by '
   
+  title_start = subject.find(lead) + len(lead)
+  title_end = subject.find(separator)
+  
+  title = subject[title_start:title_end]
+  
+  artist_start = title_end + len(separator)
+  
+  artist = subject[artist_start:]
+
+  return title, artist
+
+def parse_shazam(subject):
+  separator =  '- '
+  
+  title_end = subject.find(separator)
+  title = subject[:title_end]
+  
+  artist_start = title_end + len(separator)
+  artist = subject[artist_start:]
+  return title, artist
+
+class idsong:
+
   def POST(self):
     db = get_db()
 
@@ -225,17 +250,10 @@ class idsong:
     
     subject = web.input()['subject']
     
-    lead = 'Music ID: "'
-    separator = '" by '
-    
-    title_start = subject.find(lead) + len(lead)
-    title_end = subject.find(separator)
-    
-    title = subject[title_start:title_end]
-    
-    artist_start = title_end + len(separator)
-    
-    artist = subject[artist_start:]
+    try:
+      title, artist = parse_vcast(subject)
+    except:
+      title, artist = parse_shazam(subject)
     
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
