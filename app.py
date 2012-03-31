@@ -180,7 +180,7 @@ class discoversong:
         form.Button('Save'),
     )
     
-    return editform
+    return editform()
 
 class root:
   def GET(self):
