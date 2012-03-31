@@ -252,8 +252,10 @@ class idsong:
     
     try:
       title, artist = parse_vcast(subject)
+      print 'vcast parsed', title, artist
     except:
       title, artist = parse_shazam(subject)
+      print 'shazam parsed', title, artist
     
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
