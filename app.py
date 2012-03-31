@@ -210,6 +210,9 @@ def parse_vcast(subject):
   lead = 'Music ID: "'
   separator = '" by '
   
+  if subject.find(lead) < 0 or subject.find(separator) < 0:
+    raise ValueError('not VCast!')
+  
   title_start = subject.find(lead) + len(lead)
   title_end = subject.find(separator)
   
