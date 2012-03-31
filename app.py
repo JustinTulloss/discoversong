@@ -61,6 +61,12 @@ def make_unique_email(db):
 
 NOT_SPECIFIED = object()
 
+def get_rdio():
+  return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
+
+def get_rdio_with_access(token, secret):
+  return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']), (token, secret))
+
 def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NOT_SPECIFIED):
     
   if access_token == NOT_SPECIFIED:
@@ -70,8 +76,7 @@ def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NO
   
   if access_token and access_token_secret:
 
-    rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
-      (access_token, access_token_secret))
+    rdio = get_rdio_with_access(access_token, access_token_secret)
     # make sure that we can make an authenticated call
   
     try:
@@ -153,7 +158,7 @@ class login:
     web.setcookie('rt', '', expires=-1)
     web.setcookie('rts', '', expires=-1)
     # begin the authentication process
-    rdio = Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
+    rdio = get_rdio()
     url = rdio.begin_authentication(callback_url = web.ctx.homedomain+'/callback')
     # save our request token in cookies
     web.setcookie('rt', rdio.token[0], expires=60*60*24) # expires in one day
@@ -170,8 +175,7 @@ class callback:
     # make sure we have everything we need
     if request_token and request_token_secret and verifier:
       # exchange the verifier and request token for an access token
-      rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
-        (request_token, request_token_secret))
+      rdio = get_rdio_with_access(request_token, request_token_secret)
       rdio.complete_authentication(verifier)
       # save the access token in cookies (and discard the request token)
       web.setcookie('at', rdio.token[0], expires=60*60*24*14) # expires in two weeks
