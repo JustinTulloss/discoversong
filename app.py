@@ -219,7 +219,7 @@ class idsong:
 
     rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
-    print web.input.keys()
+    print web.input().keys()
     
     return None
 
