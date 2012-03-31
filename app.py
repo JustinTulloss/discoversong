@@ -212,6 +212,8 @@ class idsong:
     db = get_db()
 
     from_address = web.input()['from']
+    print web.input()['plain']
+    
     result = db.select('discoplay_user', what='rdio_user_id, rdio_playlist_id, access_token, access_token_secret', where="email_from_address='%s'" % from_address)[0]
     
     access_token = str(result['access_token'])
@@ -222,7 +224,6 @@ class idsong:
     rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
     subject = web.input()['subject']
-    print web.input()['plain']
     
     lead = 'Music ID: "'
     separator = '" by '
