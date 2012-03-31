@@ -263,9 +263,18 @@ class idsong:
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
     track_keys = []
+    name_artist_pairs_found = {}
     for possible_hit in search_result['result']['results']:
       
       if possible_hit['canStream']:
+        
+        name = possible_hit['name']
+        artist_name = possible_hit['artist']
+        
+        if name_artist_pairs_found.has_key((name, artist_name)):
+          continue
+        
+        name_artist_pairs_found[(name, artist_name)] = True
         
         track_key = possible_hit['key']
         track_keys.append(track_key)
