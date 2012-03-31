@@ -176,7 +176,8 @@ class discoversong:
     from web import form
     
     editform = form.Form(
-        form.Dropdown('playlist_key', args=[(playlist['key'], playlist['name']) for playlist in playlists], value=selected),
+        form.Dropdown(name='playlist_key', description='Playlist to save songs to', value=selected, args=[(playlist['key'], playlist['name']) for playlist in playlists]),
+        form.Button('*new playlist'),
         form.Button('Save'),
     )
     
@@ -206,7 +207,6 @@ class root:
       message = ''
       if 'saved' in web.input():
         message = '  Saved your selections.'
-      
       
       return render.loggedin(name=currentUser['firstName'],
                              message=message,
@@ -270,6 +270,7 @@ class logout:
 class save:
     
   def GET(self):
+    print web.input().keys()
     
     rdio, currentUser = discoversong.get_rdio_and_current_user()
     user_id = int(currentUser['key'][1:])

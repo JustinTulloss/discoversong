@@ -4,9 +4,16 @@ $def with (name, message, to_address, editform)
     <title>discoversong</title>
   </head>
   <body>
+    <h1>discoversong</h1>
     Welcome $name!
     $message
+    <p>
+      Configure your song-identifier (such as VCast Song ID, Shazam, or other) to email to the address shown below.  discoversong
+      will search Rdio and add what it finds to the playlist you have selected below.
+    </p>
+    <form action="/save">
     $:editform.render()
+    </form>
     <a href="/logout">Log out of Rdio</a>
   </body>
 </html>
