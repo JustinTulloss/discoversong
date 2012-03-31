@@ -61,17 +61,15 @@ def make_unique_email(db):
   #  return name
 
 NOT_SPECIFIED = object()
+
 def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NOT_SPECIFIED):
+    
   if access_token == NOT_SPECIFIED:
     access_token = web.cookies().get('at')
   if access_token_secret == NOT_SPECIFIED:
     access_token_secret = web.cookies().get('ats')
   
   if access_token and access_token_secret:
-    print 'access_token', type(access_token), access_token
-    print 'access_token_secret', type(access_token_secret), access_token_secret
-    print 'RDIO_CONSUMER_KEY', type(RDIO_CONSUMER_KEY), RDIO_CONSUMER_KEY
-    print 'RDIO_CONSUMER_SECRET', type(RDIO_CONSUMER_SECRET), RDIO_CONSUMER_SECRET
 
     rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET),
       (access_token, access_token_secret))
@@ -82,14 +80,23 @@ def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NO
     except urllib2.HTTPError:
       # this almost certainly means that authentication has been revoked for the app. log out.
       raise web.seeother('/logout')
+    
     return rdio, currentUser
+  
   else:
+    
     return None, None
   
 def get_db():
+  
   dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
+  
   db = web.database(dburl=dburl,
-      dbn='postgres', host='pg60.sharedpg.heroku.com', user='tguaspklkhnrpn', pw='4KBnjLB1n5wbuvzNB4p7DyQEpF', db='vivid_winter_30977')
+                    dbn='postgres',
+                    host='pg60.sharedpg.heroku.com',
+                    user='tguaspklkhnrpn',
+                    pw='4KBnjLB1n5wbuvzNB4p7DyQEpF',
+                    db='vivid_winter_30977')
   return db
 
 class root:
@@ -209,13 +216,10 @@ class idsong:
     
     access_token = str(result['access_token'])
     access_token_secret = str(result['access_token_secret'])
-    print 'access_token', access_token
-    print 'access_token_secret', access_token_secret
 
     rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
-    
-    print 'now need to parse, search, and save!', current_user
+    print web.input.keys()
     
     return None
 
