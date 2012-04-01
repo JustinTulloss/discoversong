@@ -59,6 +59,16 @@ class discoversong:
     return name
   
   @staticmethod
+  def generate_playlist_name(existing_names):
+    base_name = "discoversong's finds"
+    name = base_name
+    i = 0
+    while name in existing_names:
+      i += 1
+      name = '%s %i' % (base_name, i)
+    return name
+  
+  @staticmethod
   def make_unique_email(db):
     
     exists = 1
@@ -177,8 +187,8 @@ class discoversong:
     
     editform = form.Form(
         form.Dropdown(name='playlist', description='Playlist to save songs to', value=selected, args=[(playlist['key'], playlist['name']) for playlist in playlists]),
-        form.Button('new', html='or create a new playlist'),
-        form.Button('save', html='Save', description='boo'),
+        form.Button('button', value='new', html='or create a new playlist'),
+        form.Button('button', value='save', html='Save'),
     )
     
     return editform()
@@ -272,13 +282,25 @@ class save:
   def GET(self):
     print web.input().keys()
     
+    action = web.input()['button']
+    
     rdio, currentUser = discoversong.get_rdio_and_current_user()
     user_id = int(currentUser['key'][1:])
-    
     db = discoversong.get_db()
     
-    db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=web.input()['playlist'])
+    if action == 'save':
     
+      db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=web.input()['playlist'])
+      
+    elif action == 'new':
+      
+      p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
+      new_name = discoversong.generate_playlist_name(p_names)
+      import datetime
+      new_key = rdio.call('createPlaylist', {'name': new_name, 'description': 'Songs identified by discoversong (http://discoversong.com).  Playlist created on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M')})['key']
+      
+      db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=new_key)
+
     raise web.seeother('/?saved=True') 
 
 class idsong:
