@@ -310,8 +310,8 @@ class idsong:
     db = discoversong.get_db()
 
     to_address = web.input()['to']
-    print web.input()['from'], web.input().keys()
-    print web.input()['plain'][:1000]
+    print 'DEBUG from', web.input()['from'], 'keys', web.input().keys()
+    print 'first 1000', web.input()['plain'][:1000]
     
     result = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)[0]
     
