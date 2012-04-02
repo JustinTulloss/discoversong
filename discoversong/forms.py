@@ -12,7 +12,6 @@ def editform(playlists, selected):
                     description='Playlist to save songs to',
                     value=selected,
                     args=args),
-      form.Button('button', value='new', html='or create a new playlist'),
       form.Button('button', value='save', html='Save'),
   )
   

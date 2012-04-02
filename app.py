@@ -146,15 +146,6 @@ class save:
     
       db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=web.input()['playlist'])
       
-    elif action == 'new':
-      
-      p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
-      new_name = generate_playlist_name(p_names)
-      result = rdio.call('createPlaylist', {'name': new_name, 'description': 'Songs identified by discoversong (http://discoversong.com).  Playlist created on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M'), 'tracks': ''})
-      new_key = result['result']['key']
-      
-      db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=new_key)
-
     raise web.seeother('/?saved=True') 
 
 class idsong:
