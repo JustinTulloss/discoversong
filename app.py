@@ -164,8 +164,8 @@ class idsong:
       print 'RAW', web.rawinput()
       print 'not raw', web.input()
       to_address = web.input()['to']
-      print 'DEBUG from', web.input()['from'], 'keys', web.input().keys()
-      print 'first 1000', web.input()['plain'][:1000]
+      print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys()
+      print 'first 1000', web.input()['text'][:1000]
       
       result = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)[0]
       
