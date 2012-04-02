@@ -161,17 +161,16 @@ class idsong:
     try:
       db = get_db()
   
-      print 'not raw', web.input()
       to_address = web.input()['to']
-      print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys()
-      print 'first 1000', web.input()['text'][:1000]
+      print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys(), 'headers', web.input()['headers'], 'envelope', web.input()['envelope']
+      #print 'first 1000', web.input()['text'][:1000]
       
       result = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)[0]
       
       access_token = str(result['token'])
       access_token_secret = str(result['secret'])
       
-      playlist_key = result['rdio_playlist_key']
+      playlist_key = result['playlist']
   
       rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
       
