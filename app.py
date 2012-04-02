@@ -202,6 +202,7 @@ class idsong:
       rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
     except Exception, e:
       print 'exception', e, e.__dict__
+      print 'web', dir(web)
     
     return None
 
