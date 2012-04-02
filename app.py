@@ -161,13 +161,9 @@ class idsong:
     try:
       db = get_db()
   
-      to_address = web.input()['to']
+      to_address = web.input()['envelope']['to']
+      from_address = web.input()['envelope']['from']
       print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys()
-      
-      import email
-      p = email.Parser.Parser()
-      message = p.parsestr('\n'.join([web.input()['envelope'], web.input()['headers'], '\n', web.input()['text']]))
-      print message.keys()
       
       #print 'first 1000', web.input()['text'][:1000]
       
