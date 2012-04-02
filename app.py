@@ -19,18 +19,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import json
 import os
 import sys
 import traceback
 import web
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from discoversong import make_unique_email, generate_playlist_name
 from discoversong.db import get_db
 from discoversong.forms import editform
 from discoversong.parse import parse
 from discoversong.rdio import get_rdio, get_rdio_and_current_user, get_rdio_with_access
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 urls = (
   '/', 'root',
@@ -161,10 +162,11 @@ class idsong:
   def POST(self):
     try:
       db = get_db()
-  
-      to_address = web.input()['envelope']['to']
-      from_address = web.input()['envelope']['from']
-      print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys()
+      
+      envelope = json.loads(web.input()['envelope'])
+      to_address = envelope['to']
+      from_address = envelope['from']
+      print 'DEBUG to', to_address, 'from', from_address, 'keys', web.input().keys()
       
       #print 'first 1000', web.input()['text'][:1000]
       
