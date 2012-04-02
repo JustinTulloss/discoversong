@@ -166,17 +166,21 @@ class idsong:
       envelope = json.loads(web.input()['envelope'])
       to_addresses = envelope['to']
       
+      print 'received email to', to_addresses
+      
       for to_address in to_addresses:
         
         lookup = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)
         
         if len(lookup) == 1:
           result = lookup[0]
-      
+          
           access_token = str(result['token'])
           access_token_secret = str(result['secret'])
           
           rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
+          
+          print 'found user', current_user['username']
           
           subject = web.input()['subject']
           
@@ -202,6 +206,8 @@ class idsong:
               track_key = possible_hit['key']
               track_keys.append(track_key)
           
+          print 'found tracks', track_keys
+          
           playlist_key = result['playlist']
           
           if playlist_key in ['new', 'alwaysnew']:
@@ -209,12 +215,18 @@ class idsong:
             p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
 
             new_name = generate_playlist_name(p_names)
+            
+            print 'creating new playlist', new_name
+            
             result = rdio.call('createPlaylist', {'name': new_name,
                                                   'description': 'Songs found by discoversong on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M'),
                                                   'tracks': ', '.join(track_keys)})
             new_key = result['result']['key']
             
             if playlist_key == 'new':
+              
+              print 'setting', new_key, 'as the playlist to use next time'
+              
               user_id = int(current_user['key'][1:])
               db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=new_key)
             # else leave 'alwaysnew' to repeat this behavior every time
