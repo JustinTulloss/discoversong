@@ -27,6 +27,7 @@ import traceback
 
 from discoversong import make_unique_email, generate_playlist_name
 from discoversong.db import get_db
+from discoversong.forms import EditForm
 from discoversong.parse import parse
 from discoversong.rdio import get_rdio, get_rdio_and_current_user, get_rdio_with_access
 
