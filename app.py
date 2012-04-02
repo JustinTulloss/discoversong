@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import datetime
 import json
 import os
 import sys
@@ -62,7 +63,7 @@ class root:
       if len(result) == 0:
         access_token = web.cookies().get('at')
         access_token_secret = web.cookies().get('ats')
-        db.insert('discoversong_user', rdio_user_id=user_id, address=make_unique_email(currentUser), token=access_token, secret=access_token_secret)
+        db.insert('discoversong_user', rdio_user_id=user_id, address=make_unique_email(currentUser), token=access_token, secret=access_token_secret, playlist='new')
         result = list(db.select('discoversong_user', what='address, playlist', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
@@ -149,7 +150,6 @@ class save:
       
       p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
       new_name = generate_playlist_name(p_names)
-      import datetime
       result = rdio.call('createPlaylist', {'name': new_name, 'description': 'Songs identified by discoversong (http://discoversong.com).  Playlist created on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M'), 'tracks': ''})
       new_key = result['result']['key']
       
@@ -165,19 +165,17 @@ class idsong:
       
       envelope = json.loads(web.input()['envelope'])
       to_addresses = envelope['to']
-      from_addresses = envelope['from']
-      print 'DEBUG to', to_addresses, 'from', from_addresses, 'keys', web.input().keys()
       
       for to_address in to_addresses:
+        
         lookup = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)
+        
         if len(lookup) == 1:
           result = lookup[0]
       
           access_token = str(result['token'])
           access_token_secret = str(result['secret'])
           
-          playlist_key = result['playlist']
-      
           rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
           
           subject = web.input()['subject']
@@ -188,6 +186,7 @@ class idsong:
           
           track_keys = []
           name_artist_pairs_found = {}
+          
           for possible_hit in search_result['result']['results']:
             
             if possible_hit['canStream']:
@@ -203,7 +202,26 @@ class idsong:
               track_key = possible_hit['key']
               track_keys.append(track_key)
           
-          rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
+          playlist_key = result['playlist']
+          
+          if playlist_key in ['new', 'alwaysnew']:
+            
+            p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
+
+            new_name = generate_playlist_name(p_names)
+            result = rdio.call('createPlaylist', {'name': new_name,
+                                                  'description': 'Songs found by discoversong on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M'),
+                                                  'tracks': ', '.join(track_keys)})
+            new_key = result['result']['key']
+            
+            if playlist_key == 'new':
+              user_id = int(current_user['key'][1:])
+              db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=new_key)
+            # else leave 'alwaysnew' to repeat this behavior every time
+          
+          else:
+            rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
+          
     except Exception, e:
       traceback.print_exception(*sys.exc_info())
       print 'exception', e, e.__dict__
