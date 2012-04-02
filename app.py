@@ -170,8 +170,7 @@ class idsong:
           
           rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
           
-          print current_user.keys()
-          print 'found user', current_user['firstName'], current_user['lastName']
+          print 'found user', current_user['username']
           
           subject = web.input()['subject']
           

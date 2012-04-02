@@ -27,7 +27,7 @@ def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NO
     # make sure that we can make an authenticated call
   
     try:
-      currentUser = rdio.call('currentUser')['result']
+      currentUser = rdio.call('currentUser', {'extras': 'username'})['result']
     except urllib2.HTTPError:
       # this almost certainly means that authentication has been revoked for the app. log out.
       raise web.seeother('/logout')
