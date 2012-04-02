@@ -159,7 +159,7 @@ class idsong:
   def POST(self):
     db = get_db()
     
-    envelope = json.loads(web.input()['envelope'])
+    envelope = json.loads(web.input(_unicode=False)['envelope'])
     to_addresses = envelope['to']
     
     print 'received email to', to_addresses
