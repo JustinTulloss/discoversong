@@ -20,18 +20,17 @@
 # THE SOFTWARE.
 
 # include the parent directory in the Python path
-import sys
 import os
+import sys
+import web
+from discoversong.parse import parse
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# import the rdio-simple library
-from rdio import Rdio
-
-import web
-
-import urllib2
-
-from includes import *
+from discoversong import make_unique_email, generate_playlist_name
+from discoversong.db import get_db
+from discoversong.forms import editform
+from discoversong.rdio import get_rdio, get_rdio_and_current_user, get_rdio_with_access
 
 urls = (
   '/', 'root',
@@ -46,170 +45,23 @@ app = web.application(urls, globals())
 
 render = web.template.render('templates/')
 
-class discoversong:
-
-  @staticmethod
-  def generate_name():
-    import random
-    name = ''
-    for i in range(10):
-      name += letters[random.randrange(0, len(letters))]
-      name += str(random.randrange(0, 9))
-    name += '@discoversong.com'
-    return name
-  
-  @staticmethod
-  def generate_playlist_name(existing_names):
-    base_name = "discoversong's finds"
-    name = base_name
-    i = 0
-    while name in existing_names:
-      i += 1
-      name = '%s %i' % (base_name, i)
-    return name
-  
-  @staticmethod
-  def make_unique_email(db):
-    
-    exists = 1
-    name = None
-    
-    while exists > 0:
-      name = discoversong.generate_name()
-      exists = db.select('discoversong_user', what='count(*)', where="address='%s'" % name)[0]['count']
-    
-    return name
-  
-  @staticmethod
-  def get_rdio():
-    return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
-  
-  @staticmethod
-  def get_rdio_with_access(token, secret):
-    return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']), (token, secret))
-  
-  @staticmethod
-  def get_rdio_and_current_user(access_token=NOT_SPECIFIED, access_token_secret=NOT_SPECIFIED):
-      
-    if access_token == NOT_SPECIFIED:
-      access_token = web.cookies().get('at')
-    if access_token_secret == NOT_SPECIFIED:
-      access_token_secret = web.cookies().get('ats')
-    
-    if access_token and access_token_secret:
-  
-      rdio = discoversong.get_rdio_with_access(access_token, access_token_secret)
-      # make sure that we can make an authenticated call
-    
-      try:
-        currentUser = rdio.call('currentUser')['result']
-      except urllib2.HTTPError:
-        # this almost certainly means that authentication has been revoked for the app. log out.
-        raise web.seeother('/logout')
-      
-      return rdio, currentUser
-    
-    else:
-      
-      return None, None
-  
-  @staticmethod
-  def get_db():
-  
-    dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
-    
-    db = web.database(dburl=dburl,
-                      dbn='postgres',
-                      host='pg60.sharedpg.heroku.com',
-                      user='tguaspklkhnrpn',
-                      pw='4KBnjLB1n5wbuvzNB4p7DyQEpF',
-                      db='vivid_winter_30977')
-    return db
-  
-  @staticmethod
-  def parse_vcast(subject):
-    
-    lead = 'Music ID: "'
-    separator = '" by '
-    
-    if subject.find(lead) < 0 or subject.find(separator) < 0:
-      raise ValueError('not VCast!')
-    
-    title_start = subject.find(lead) + len(lead)
-    title_end = subject.find(separator)
-    
-    title = subject[title_start:title_end]
-    
-    artist_start = title_end + len(separator)
-    
-    artist = subject[artist_start:]
-  
-    return title, artist
-  
-  @staticmethod
-  def parse_shazam(subject):
-    
-    separator =  '- '
-    
-    title_end = subject.find(separator)
-    if title_end < 0:
-      raise ValueError('not Shazam!')
-    
-    title = subject[:title_end]
-    
-    artist_start = title_end + len(separator)
-    artist = subject[artist_start:]
-    return title, artist
-  
-  @staticmethod
-  def parse_unknown(subject):
-    
-    return subject, ''
-  
-  @staticmethod
-  def parse(subject):
-    
-    parsers = [discoversong.parse_vcast,
-               discoversong.parse_shazam,
-               discoversong.parse_unknown] # this should always be last
-    
-    for parse in parsers:
-      try:
-        parsed = parse(subject)
-        return parsed
-      except:
-        continue
-    raise ValueError('at least the unknown parser should have worked!')
-  
-  @staticmethod
-  def get_editform(playlists, selected):
-    from web import form
-    
-    editform = form.Form(
-        form.Dropdown(name='playlist', description='Playlist to save songs to', value=selected, args=[(playlist['key'], playlist['name']) for playlist in playlists]),
-        form.Button('button', value='new', html='or create a new playlist'),
-        form.Button('button', value='save', html='Save'),
-    )
-    
-    return editform()
-
 class root:
   def GET(self):
     
-    rdio, currentUser = discoversong.get_rdio_and_current_user()
+    rdio, currentUser = get_rdio_and_current_user()
     
     if rdio and currentUser:
       user_id = int(currentUser['key'][1:])
       
       myPlaylists = rdio.call('getPlaylists')['result']['owned']
       
-      db = discoversong.get_db()
+      db = get_db()
       
       result = list(db.select('discoversong_user', what='address, playlist', where="rdio_user_id=%i" % user_id))
       if len(result) == 0:
         access_token = web.cookies().get('at')
         access_token_secret = web.cookies().get('ats')
-        db.insert('discoversong_user', rdio_user_id=user_id, address=discoversong.make_unique_email(db), token=access_token, secret=access_token_secret)
+        db.insert('discoversong_user', rdio_user_id=user_id, address=make_unique_email(db), token=access_token, secret=access_token_secret)
         result = list(db.select('discoversong_user', what='address, playlist', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
@@ -221,7 +73,7 @@ class root:
       return render.loggedin(name=currentUser['firstName'],
                              message=message,
                              to_address=result['address'],
-                             editform=discoversong.get_editform(myPlaylists, result['playlist'])
+                             editform=editform(myPlaylists, result['playlist'])
                             )
     else:
       return render.loggedout()
@@ -235,7 +87,7 @@ class login:
     web.setcookie('rt', '', expires=-1)
     web.setcookie('rts', '', expires=-1)
     # begin the authentication process
-    rdio = discoversong.get_rdio()
+    rdio = get_rdio()
     url = rdio.begin_authentication(callback_url = web.ctx.homedomain+'/callback')
     # save our request token in cookies
     web.setcookie('rt', rdio.token[0], expires=60*60*24) # expires in one day
@@ -253,7 +105,7 @@ class callback:
     # make sure we have everything we need
     if request_token and request_token_secret and verifier:
       # exchange the verifier and request token for an access token
-      rdio = discoversong.get_rdio_with_access(request_token, request_token_secret)
+      rdio = get_rdio_with_access(request_token, request_token_secret)
       rdio.complete_authentication(verifier)
       # save the access token in cookies (and discard the request token)
       web.setcookie('at', rdio.token[0], expires=60*60*24*14) # expires in two weeks
@@ -284,9 +136,9 @@ class save:
     
     action = web.input()['button']
     
-    rdio, currentUser = discoversong.get_rdio_and_current_user()
+    rdio, currentUser = get_rdio_and_current_user()
     user_id = int(currentUser['key'][1:])
-    db = discoversong.get_db()
+    db = get_db()
     
     if action == 'save':
     
@@ -295,7 +147,7 @@ class save:
     elif action == 'new':
       
       p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
-      new_name = discoversong.generate_playlist_name(p_names)
+      new_name = generate_playlist_name(p_names)
       import datetime
       result = rdio.call('createPlaylist', {'name': new_name, 'description': 'Songs identified by discoversong (http://discoversong.com).  Playlist created on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M'), 'tracks': ''})
       new_key = result['result']['key']
@@ -307,7 +159,7 @@ class save:
 class idsong:
 
   def POST(self):
-    db = discoversong.get_db()
+    db = get_db()
 
     to_address = web.input()['to']
     print 'DEBUG from', web.input()['from'], 'keys', web.input().keys()
@@ -320,11 +172,11 @@ class idsong:
     
     playlist_key = result['rdio_playlist_key']
 
-    rdio, current_user = discoversong.get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
+    rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
     
     subject = web.input()['subject']
     
-    title, artist = discoversong.parse(subject)
+    title, artist = parse(subject)
     
     search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
     
