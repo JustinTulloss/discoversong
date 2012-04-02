@@ -6,7 +6,7 @@ import web
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from contrib.rdio import Rdio
 
-from discoversong.includes import NOT_SPECIFIED
+from discoversong.includes import *
 
 def get_rdio():
   return Rdio((os.environ['RDIO_CONSUMER_KEY'], os.environ['RDIO_CONSUMER_SECRET']))
