@@ -176,6 +176,8 @@ class idsong:
           
           title, artist = parse(subject)
           
+          print 'parsed artist', artist, 'title', title
+          
           search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
           
           track_keys = []
