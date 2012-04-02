@@ -229,7 +229,7 @@ class idsong:
     except:
       traceback.print_exception(*sys.exc_info())
       
-      print web.rawinput('POST')
+      print dir(web)
     
     return None
 
