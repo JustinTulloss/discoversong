@@ -161,6 +161,8 @@ class idsong:
     try:
       db = get_db()
   
+      print 'RAW', web.rawinput()
+      print 'not raw', web.input()
       to_address = web.input()['to']
       print 'DEBUG from', web.input()['from'], 'keys', web.input().keys()
       print 'first 1000', web.input()['plain'][:1000]
