@@ -23,9 +23,8 @@ import datetime
 import json
 import os
 import sys
-import traceback
 
-from discoversong import make_unique_email, generate_playlist_name
+from discoversong import make_unique_email, generate_playlist_name, printerrors
 from discoversong.db import get_db
 from discoversong.parse import parse
 from discoversong.rdio import get_rdio, get_rdio_and_current_user, get_rdio_with_access
@@ -47,8 +46,9 @@ def teardown_request(exception):
   g.db.close()
 
 @app.route('/', methods=['GET', 'POST'])
+@printerrors
 def root():
-  print 1
+    
   rdio, currentUser = get_rdio_and_current_user()
   
   if rdio and currentUser:
@@ -79,6 +79,7 @@ def root():
     return render_template('loggedout.html')
 
 @app.route('/login', methods=['GET'])
+@printerrors
 def login():
   
   # clear all of our auth cookies
@@ -100,6 +101,7 @@ def login():
   return response
 
 @app.route('/callback', methods=['GET'])
+@printerrors
 def callback():
   
   # get the state from cookies and the query string
@@ -124,6 +126,7 @@ def callback():
   return response
 
 @app.route('/logout', methods=['GET'])
+@printerrors
 def logout():
   
   response = redirect('/')
@@ -136,6 +139,7 @@ def logout():
   return response
 
 @app.route('/save', methods=['POST'])
+@printerrors
 def save():
     
   action = request.form['button']
@@ -151,86 +155,83 @@ def save():
   return redirect('/?saved=True') 
 
 @app.route('/idsong', methods=['POST'])
+@printerrors
 def idsong():
 
-  try:
-    db = get_db()
+  db = get_db()
+  
+  envelope = json.loads(request.form['envelope'])
+  to_addresses = envelope['to']
+  
+  print 'received email to', to_addresses
+  
+  for to_address in to_addresses:
     
-    envelope = json.loads(request.form['envelope'])
-    to_addresses = envelope['to']
+    lookup = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)
     
-    print 'received email to', to_addresses
-    
-    for to_address in to_addresses:
+    if len(lookup) == 1:
+      result = lookup[0]
       
-      lookup = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)
+      access_token = str(result['token'])
+      access_token_secret = str(result['secret'])
       
-      if len(lookup) == 1:
-        result = lookup[0]
+      rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
+      
+      print 'found user', current_user['username']
+      
+      subject = request.form['subject']
+      
+      title, artist = parse(subject)
+      
+      print 'parsed artist', artist, 'title', title
+      
+      search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
+      
+      track_keys = []
+      name_artist_pairs_found = {}
+      
+      for possible_hit in search_result['result']['results']:
         
-        access_token = str(result['token'])
-        access_token_secret = str(result['secret'])
-        
-        rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
-        
-        print 'found user', current_user['username']
-        
-        subject = request.form['subject']
-        
-        title, artist = parse(subject)
-        
-        print 'parsed artist', artist, 'title', title
-        
-        search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
-        
-        track_keys = []
-        name_artist_pairs_found = {}
-        
-        for possible_hit in search_result['result']['results']:
+        if possible_hit['canStream']:
           
-          if possible_hit['canStream']:
-            
-            name = possible_hit['name']
-            artist_name = possible_hit['artist']
-            
-            if name_artist_pairs_found.has_key((name, artist_name)):
-              continue
-            
-            name_artist_pairs_found[(name, artist_name)] = True
-            
-            track_key = possible_hit['key']
-            track_keys.append(track_key)
-        
-        print 'found tracks', track_keys
-        
-        playlist_key = result['playlist']
-        
-        if playlist_key in ['new', 'alwaysnew']:
+          name = possible_hit['name']
+          artist_name = possible_hit['artist']
           
-          p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
+          if name_artist_pairs_found.has_key((name, artist_name)):
+            continue
+          
+          name_artist_pairs_found[(name, artist_name)] = True
+          
+          track_key = possible_hit['key']
+          track_keys.append(track_key)
+      
+      print 'found tracks', track_keys
+      
+      playlist_key = result['playlist']
+      
+      if playlist_key in ['new', 'alwaysnew']:
+        
+        p_names = [playlist['name'] for playlist in rdio.call('getPlaylists')['result']['owned']]
 
-          new_name = generate_playlist_name(p_names)
-          
-          print 'creating new playlist', new_name
-          
-          result = rdio.call('createPlaylist', {'name': new_name,
-                                                'description': 'Songs found by discoversong on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M'),
-                                                'tracks': ', '.join(track_keys)})
-          new_key = result['result']['key']
-          
-          if playlist_key == 'new':
-            
-            print 'setting', new_key, 'as the playlist to use next time'
-            
-            user_id = int(current_user['key'][1:])
-            db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=new_key)
-          # else leave 'alwaysnew' to repeat this behavior every time
+        new_name = generate_playlist_name(p_names)
         
-        else:
-          rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
+        print 'creating new playlist', new_name
         
-  except:
-    traceback.print_exception(*sys.exc_info())
+        result = rdio.call('createPlaylist', {'name': new_name,
+                                              'description': 'Songs found by discoversong on %s.' % datetime.datetime.now().strftime('%A, %d %b %Y %H:%M'),
+                                              'tracks': ', '.join(track_keys)})
+        new_key = result['result']['key']
+        
+        if playlist_key == 'new':
+          
+          print 'setting', new_key, 'as the playlist to use next time'
+          
+          user_id = int(current_user['key'][1:])
+          db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=new_key)
+        # else leave 'alwaysnew' to repeat this behavior every time
+      
+      else:
+        rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
   
   return None
 
