@@ -15,10 +15,10 @@ def generate_playlist_name(existing_names):
     name = '%s %i' % (base_name, i)
   return name
 
-def printerrors(function):
-  def wrapped(*a, **kw):
+def printerrors(function, *args, **kwargs):
+  def wrapped(func, *a, **kw):
     try:
-      function(*a, **kw)
+      func(*args, **kwargs)
     except:
       traceback.print_exception(*sys.exc_info())
   return wrapped
