@@ -162,50 +162,48 @@ class idsong:
   def POST(self):
     try:
       db = get_db()
-      
+      print 'DEPLOYED'
       envelope = json.loads(web.input()['envelope'])
       to_addresses = envelope['to']
       from_addresses = envelope['from']
       print 'DEBUG to', to_addresses, 'from', from_addresses, 'keys', web.input().keys()
       
-      result = None
       for to_address in to_addresses:
         lookup = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)
         if len(lookup) == 1:
           result = lookup[0]
-          break
       
-      access_token = str(result['token'])
-      access_token_secret = str(result['secret'])
-      
-      playlist_key = result['playlist']
-  
-      rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
-      
-      subject = web.input()['subject']
-      
-      title, artist = parse(subject)
-      
-      search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
-      
-      track_keys = []
-      name_artist_pairs_found = {}
-      for possible_hit in search_result['result']['results']:
-        
-        if possible_hit['canStream']:
+          access_token = str(result['token'])
+          access_token_secret = str(result['secret'])
           
-          name = possible_hit['name']
-          artist_name = possible_hit['artist']
-          
-          if name_artist_pairs_found.has_key((name, artist_name)):
-            continue
-          
-          name_artist_pairs_found[(name, artist_name)] = True
-          
-          track_key = possible_hit['key']
-          track_keys.append(track_key)
+          playlist_key = result['playlist']
       
-      rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
+          rdio, current_user = get_rdio_and_current_user(access_token=access_token, access_token_secret=access_token_secret)
+          
+          subject = web.input()['subject']
+          
+          title, artist = parse(subject)
+          
+          search_result = rdio.call('search', {'query': ' '.join([title, artist]), 'types': 'Track'})
+          
+          track_keys = []
+          name_artist_pairs_found = {}
+          for possible_hit in search_result['result']['results']:
+            
+            if possible_hit['canStream']:
+              
+              name = possible_hit['name']
+              artist_name = possible_hit['artist']
+              
+              if name_artist_pairs_found.has_key((name, artist_name)):
+                continue
+              
+              name_artist_pairs_found[(name, artist_name)] = True
+              
+              track_key = possible_hit['key']
+              track_keys.append(track_key)
+          
+          rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
     except Exception, e:
       traceback.print_exception(*sys.exc_info())
       print 'exception', e, e.__dict__
