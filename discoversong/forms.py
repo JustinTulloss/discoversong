@@ -1,8 +1,8 @@
 def editform(playlists, selected):
   from web import form
   
-  new_playlist = ('new', '*create a new playlist')
-  always_new = ('alwaysnew', '*always create a new playlist')
+  new_playlist = ('new', '*** create a new playlist')
+  always_new = ('alwaysnew', '*** always create a new playlist')
   playlist_options = [(playlist['key'], playlist['name']) for playlist in playlists]
   args = [new_playlist, always_new]
   args.extend(playlist_options)
