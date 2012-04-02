@@ -18,7 +18,7 @@ def generate_playlist_name(existing_names):
 def printerrors(function):
   def wrapped(*a, **kw):
     try:
-      function(*a, **kw)
+      return function(*a, **kw)
     except:
       traceback.print_exception(*sys.exc_info())
   return wrapped
