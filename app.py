@@ -60,7 +60,7 @@ class root:
       if len(result) == 0:
         access_token = web.cookies().get('at')
         access_token_secret = web.cookies().get('ats')
-        db.insert('discoversong_user', rdio_user_id=user_id, address=make_unique_email(db), token=access_token, secret=access_token_secret)
+        db.insert('discoversong_user', rdio_user_id=user_id, address=make_unique_email(currentUser), token=access_token, secret=access_token_secret)
         result = list(db.select('discoversong_user', what='address, playlist', where="rdio_user_id=%i" % user_id))[0]
       else:
         result = result[0]
