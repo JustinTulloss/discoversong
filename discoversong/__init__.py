@@ -1,3 +1,6 @@
+import traceback
+import sys
+
 __author__ = 'Eugene Efremov'
 
 def make_unique_email(user):
@@ -11,3 +14,11 @@ def generate_playlist_name(existing_names):
     i += 1
     name = '%s %i' % (base_name, i)
   return name
+
+def printerrors(function):
+  def wrapped(*a, **kw):
+    try:
+      function(*a, **kw)
+    except:
+      traceback.print_exception(*sys.exc_info())
+  return wrapped
