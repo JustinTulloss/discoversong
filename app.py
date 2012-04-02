@@ -159,7 +159,12 @@ class idsong:
   def POST(self):
     db = get_db()
     
-    envelope = json.loads(web.input(_unicode=False)['envelope'])
+    try:
+      input = web.input()
+    except:
+      input = web.input(_unicode=False)
+    
+    envelope = json.loads(input['envelope'])
     to_addresses = envelope['to']
     
     print 'received email to', to_addresses
@@ -178,7 +183,7 @@ class idsong:
         
         print 'found user', current_user['username']
         
-        subject = web.input()['subject']
+        subject = input['subject']
         
         title, artist = parse(subject)
         
