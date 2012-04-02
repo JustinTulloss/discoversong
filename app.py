@@ -200,8 +200,9 @@ class idsong:
           track_keys.append(track_key)
       
       rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
-    except:
-      pass
+    except Exception, e:
+      print 'exception', e, e.__dict__
+    
     return None
 
 if __name__ == "__main__":
