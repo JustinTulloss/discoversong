@@ -1,18 +1,32 @@
-$def with (name, message, to_address, editform)
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
 <html>
   <head>
     <title>discoversong</title>
   </head>
   <body>
     <h1>discoversong</h1>
-    Welcome $name!
+    Welcome {{ name }}!
     $message
     <p>
       Configure your song-identifier (such as VCast Song ID, Shazam, or other) to email to $to_address.  discoversong
       will search Rdio and add what it finds to the playlist you have selected below.
     </p>
-    <form action="/save">
-    $:editform.render()
+    <form action="{{url-for('save')}}" method="post">
+    <table border="0">
+      <tr>
+        <th>Playlist to save songs to</th>
+        <td>
+          <select name="playlist">
+            <option value="new">*** create a new playlist</option>
+            <option value="alwaysnew">*** always create a new playlist</option>
+            {% for playlist in playlists %}
+              <option value="{{playlist['key']}}" {{ 'selected' if playlist['key'] == selected else ''}}>{{playlist['name']}}</option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+    </table>
     </form>
     <a href="/logout">Log out of Rdio</a>
   </body>

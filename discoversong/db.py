@@ -1,15 +1,8 @@
-import os
-import web
+import psycopg2
 
 def get_db():
 
-  dburl = os.environ['HEROKU_SHARED_POSTGRESQL_JADE_URL']
-  
-  db = web.database(dburl=dburl,
-                    dbn='postgres',
-                    host='pg60.sharedpg.heroku.com',
-                    user='tguaspklkhnrpn',
-                    pw='4KBnjLB1n5wbuvzNB4p7DyQEpF',
-                    db='vivid_winter_30977')
-  return db
+  conn = psycopg2.connect("dbname='vivid_winter_30977' user='tguaspklkhnrpn' host='pg60.sharedpg.heroku.com' password='4KBnjLB1n5wbuvzNB4p7DyQEpF'")
+
+  return conn
 
