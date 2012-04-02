@@ -162,7 +162,7 @@ class idsong:
   def POST(self):
     try:
       db = get_db()
-      print 'DEPLOYED'
+      print 'not deployed'
       envelope = json.loads(web.input()['envelope'])
       to_addresses = envelope['to']
       from_addresses = envelope['from']
