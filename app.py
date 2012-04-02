@@ -21,14 +21,15 @@
 
 import os
 import sys
+import traceback
 import web
-from discoversong.parse import parse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from discoversong import make_unique_email, generate_playlist_name
 from discoversong.db import get_db
 from discoversong.forms import editform
+from discoversong.parse import parse
 from discoversong.rdio import get_rdio, get_rdio_and_current_user, get_rdio_with_access
 
 urls = (
@@ -201,6 +202,7 @@ class idsong:
       
       rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
     except Exception, e:
+      traceback.print_exception(sys.exc_info())
       print 'exception', e, e.__dict__
     
     return None
