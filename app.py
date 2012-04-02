@@ -229,7 +229,8 @@ class idsong:
     except:
       traceback.print_exception(*sys.exc_info())
       
-      print dir(web)
+      raw = web.rawinput()
+      print type(raw)
     
     return None
 
