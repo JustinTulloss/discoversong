@@ -162,7 +162,7 @@ class idsong:
       db = get_db()
   
       to_address = web.input()['to']
-      print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys(), 'headers', web.input()['headers'], 'envelope', web.input()['envelope']
+      print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys()
       
       import email
       p = email.Parser.Parser()
@@ -206,7 +206,6 @@ class idsong:
       rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
     except Exception, e:
       print 'exception', e, e.__dict__
-      print 'web', dir(web)
     
     return None
 
