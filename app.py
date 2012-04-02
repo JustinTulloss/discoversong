@@ -26,7 +26,7 @@ import sys
 import traceback
 import web
 
-from discoversong import make_unique_email, generate_playlist_name, printerrors
+from discoversong import make_unique_email, generate_playlist_name, printerrors, get_input
 from discoversong.db import get_db
 from discoversong.forms import editform
 from discoversong.parse import parse
@@ -71,7 +71,7 @@ class root:
         result = result[0]
       
       message = ''
-      if 'saved' in web.input():
+      if 'saved' in get_input():
         message = '  Saved your selections.'
       
       return render.loggedin(name=currentUser['firstName'],
@@ -107,7 +107,7 @@ class callback:
     # get the state from cookies and the query string
     request_token = web.cookies().get('rt')
     request_token_secret = web.cookies().get('rts')
-    verifier = web.input()['oauth_verifier']
+    verifier = get_input()['oauth_verifier']
     # make sure we have everything we need
     if request_token and request_token_secret and verifier:
       # exchange the verifier and request token for an access token
@@ -141,7 +141,8 @@ class save:
   @printerrors
   def GET(self):
     
-    action = web.input()['button']
+    input = get_input()
+    action = input['button']
     
     rdio, currentUser = get_rdio_and_current_user()
     user_id = int(currentUser['key'][1:])
@@ -149,7 +150,7 @@ class save:
     
     if action == 'save':
     
-      db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=web.input()['playlist'])
+      db.update('discoversong_user', where="rdio_user_id=%i" % user_id, playlist=input['playlist'])
       
     raise web.seeother('/?saved=True') 
 
@@ -159,10 +160,7 @@ class idsong:
   def POST(self):
     db = get_db()
     
-    try:
-      input = web.input()
-    except:
-      input = web.input(_unicode=False)
+    input = get_input()
     
     envelope = json.loads(input['envelope'])
     to_addresses = envelope['to']

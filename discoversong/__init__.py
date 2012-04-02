@@ -1,5 +1,6 @@
 import traceback
 import sys
+import web
 
 __author__ = 'Eugene Efremov'
 
@@ -22,3 +23,9 @@ def printerrors(function):
     except:
       traceback.print_exception(*sys.exc_info())
   return wrapped
+
+def get_input():
+  try:
+    return web.input()
+  except:
+    return web.input(_unicode=False)
