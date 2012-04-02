@@ -8,8 +8,9 @@ $def with (name, message, to_address, editform)
     Welcome $name!
     $message
     <p>
-      Configure your song-identifier (such as VCast Song ID, Shazam, or other) to email to $to_address.  discoversong
-      will search Rdio and add what it finds to the playlist you have selected below.
+      Send an email to $to_address with an artist and song title in the subject.  discoversong
+      will search Rdio and add what it finds to the playlist you have selected below.  It's great!  Give it a try.
+      You can also configure your music-identifying app like Shazam or VCast Song ID to send emails to $to_address.
     </p>
     <form action="/save">
     $:editform.render()
