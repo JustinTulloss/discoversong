@@ -134,7 +134,6 @@ class logout:
 class save:
     
   def GET(self):
-    print web.input().keys()
     
     action = web.input()['button']
     
