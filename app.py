@@ -161,7 +161,7 @@ class idsong:
     try:
       db = get_db()
   
-      print 'RAW', web.rawinput()
+      print 'RAW', web.rawinput('post')
       print 'not raw', web.input()
       to_address = web.input()['to']
       print 'DEBUG to', to_address, 'from', web.input()['from'], 'keys', web.input().keys()
