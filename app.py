@@ -48,7 +48,7 @@ def teardown_request(exception):
 
 @app.route('/', methods=['GET', 'POST'])
 def root():
-  print 1
+    
   rdio, currentUser = get_rdio_and_current_user()
   
   if rdio and currentUser:
