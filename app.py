@@ -164,13 +164,16 @@ class idsong:
       db = get_db()
       
       envelope = json.loads(web.input()['envelope'])
-      to_address = envelope['to']
-      from_address = envelope['from']
-      print 'DEBUG to', to_address, 'from', from_address, 'keys', web.input().keys()
+      to_addresses = envelope['to']
+      from_addresses = envelope['from']
+      print 'DEBUG to', to_addresses, 'from', from_addresses, 'keys', web.input().keys()
       
-      #print 'first 1000', web.input()['text'][:1000]
-      
-      result = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)[0]
+      result = None
+      for to_address in to_addresses:
+        lookup = db.select('discoversong_user', what='rdio_user_id, playlist, token, secret', where="address='%s'" % to_address)
+        if len(lookup) == 1:
+          result = lookup[0]
+          break
       
       access_token = str(result['token'])
       access_token_secret = str(result['secret'])
