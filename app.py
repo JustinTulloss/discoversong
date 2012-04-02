@@ -202,7 +202,7 @@ class idsong:
       
       rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': ', '.join(track_keys)})
     except Exception, e:
-      traceback.print_exception(sys.exc_info())
+      traceback.print_exception(*sys.exc_info())
       print 'exception', e, e.__dict__
     
     return None
